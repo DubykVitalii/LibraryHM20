@@ -3,6 +3,7 @@ package com.cursor.library;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class BookRepo {
@@ -22,8 +23,12 @@ public class BookRepo {
         books.put(id5, new Book(id5, "The Great Gatsby", "F. Scott Fitzgerald", 1925, "Novel"));
     }
 
-    public List<Book> getAll() {
-        return new ArrayList<>(books.values());
+    public List<Book> getAll(Integer offset, Integer limit) {
+        if(limit>=books.size()) {
+            limit=books.size();
+        }
+
+        return new ArrayList<>(books.values()).subList(offset, limit);
     }
 
     public Book saveBook(
@@ -37,6 +42,36 @@ public class BookRepo {
     }
 
     public Book findById(String bookId) {
+        return books.get(bookId);
+    }
+
+    public List<Book> getSortedBooks(String sorted) {
+        ArrayList<Book> listBooks = new ArrayList<>(books.values());
+        if(sorted.equals("name"))
+        {
+           listBooks.sort(Comparator.comparing(Book::getName).thenComparing(Book::getYear));
+        } else if (sorted.equals("year")) {
+            listBooks.sort(Comparator.comparing(Book::getYear).thenComparing(Book::getName));
+        }
+        return listBooks;
+    }
+
+    public List<Book> findAllByAuthor(String bookAuthor) {
+        ArrayList<Book> listBooks = new ArrayList<>(books.values());
+        List<Book> result = listBooks.stream().filter(book -> book.getAuthor().equals(bookAuthor)).collect(Collectors.toList());
+        return result;
+    }
+
+    public Book updateBook(
+            final String bookId,
+            final String name,
+            final String author,
+            final Integer year,
+            final String genre) {
+        books.get(bookId).setName(name);
+        books.get(bookId).setAuthor(author);
+        books.get(bookId).setYear(year);
+        books.get(bookId).setGenre(genre);
         return books.get(bookId);
     }
 }
